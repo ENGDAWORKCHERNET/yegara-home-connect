@@ -13,6 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedFindHousesRouteImport } from './routes/_authenticated/find-houses'
+import { Route as AuthenticatedPaymentsRouteImport } from './routes/_authenticated/payments'
 import { Route as AuthenticatedPropertiesRouteImport } from './routes/_authenticated/properties'
 import { Route as AuthenticatedRequestsRouteImport } from './routes/_authenticated/requests'
 
@@ -35,6 +37,16 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedFindHousesRoute = AuthenticatedFindHousesRouteImport.update({
+  id: '/find-houses',
+  path: '/find-houses',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPaymentsRoute = AuthenticatedPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPropertiesRoute = AuthenticatedPropertiesRouteImport.update({
   id: '/properties',
   path: '/properties',
@@ -50,6 +62,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/find-houses': typeof AuthenticatedFindHousesRoute
+  '/payments': typeof AuthenticatedPaymentsRoute
   '/properties': typeof AuthenticatedPropertiesRoute
   '/requests': typeof AuthenticatedRequestsRoute
 }
@@ -57,6 +71,8 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/find-houses': typeof AuthenticatedFindHousesRoute
+  '/payments': typeof AuthenticatedPaymentsRoute
   '/properties': typeof AuthenticatedPropertiesRoute
   '/requests': typeof AuthenticatedRequestsRoute
 }
@@ -66,20 +82,38 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/find-houses': typeof AuthenticatedFindHousesRoute
+  '/_authenticated/payments': typeof AuthenticatedPaymentsRoute
   '/_authenticated/properties': typeof AuthenticatedPropertiesRoute
   '/_authenticated/requests': typeof AuthenticatedRequestsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard' | '/properties' | '/requests'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/find-houses'
+    | '/payments'
+    | '/properties'
+    | '/requests'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard' | '/properties' | '/requests'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/find-houses'
+    | '/payments'
+    | '/properties'
+    | '/requests'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/dashboard'
+    | '/_authenticated/find-houses'
+    | '/_authenticated/payments'
     | '/_authenticated/properties'
     | '/_authenticated/requests'
   fileRoutesById: FileRoutesById
@@ -120,6 +154,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/find-houses': {
+      id: '/_authenticated/find-houses'
+      path: '/find-houses'
+      fullPath: '/find-houses'
+      preLoaderRoute: typeof AuthenticatedFindHousesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/payments': {
+      id: '/_authenticated/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof AuthenticatedPaymentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/properties': {
       id: '/_authenticated/properties'
       path: '/properties'
@@ -139,12 +187,16 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedFindHousesRoute: typeof AuthenticatedFindHousesRoute
+  AuthenticatedPaymentsRoute: typeof AuthenticatedPaymentsRoute
   AuthenticatedPropertiesRoute: typeof AuthenticatedPropertiesRoute
   AuthenticatedRequestsRoute: typeof AuthenticatedRequestsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedFindHousesRoute: AuthenticatedFindHousesRoute,
+  AuthenticatedPaymentsRoute: AuthenticatedPaymentsRoute,
   AuthenticatedPropertiesRoute: AuthenticatedPropertiesRoute,
   AuthenticatedRequestsRoute: AuthenticatedRequestsRoute,
 }
