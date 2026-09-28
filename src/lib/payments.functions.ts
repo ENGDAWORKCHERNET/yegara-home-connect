@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { nextDueDateFrom, rentUrgency, type Recurrence } from "@/lib/rent";
 
-const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const AI_URL = "https://api.x.ai/v1/chat/completions";
 
 /**
  * Uploads are done client-side into the tenant's own private folder.
@@ -63,10 +63,10 @@ export const verifyReceipt = createServerFn({ method: "POST" })
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]!}`,
+          Authorization: `Bearer ${process.env["GROK_API_KEY"]!}`,
         },
         body: JSON.stringify({
-          model: "google/gemini-3.5-flash",
+          model: "grok-2-vision-latest",
           messages: [
             {
               role: "system",

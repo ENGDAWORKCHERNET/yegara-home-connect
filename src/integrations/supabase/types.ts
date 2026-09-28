@@ -38,8 +38,41 @@ export type Database = {
         }
         Relationships: []
       }
+      buildings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          location: string | null
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: string | null
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       houses: {
         Row: {
+          bathrooms: number | null
+          bedrooms: number | null
+          building_id: string | null
           created_at: string
           description: string
           house_number: string
@@ -51,6 +84,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          bathrooms?: number | null
+          bedrooms?: number | null
+          building_id?: string | null
           created_at?: string
           description?: string
           house_number: string
@@ -62,6 +98,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          bathrooms?: number | null
+          bedrooms?: number | null
+          building_id?: string | null
           created_at?: string
           description?: string
           house_number?: string

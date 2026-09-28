@@ -1,5 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AlertTriangle, Building2, CalendarDays, Home, Megaphone, Receipt, UserCheck, Users, Wrench } from "lucide-react";
+import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { AlertTriangle, Building2, CalendarDays, Home, LogOut, Megaphone, Receipt, UserCheck, Users, Wrench } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
   approvedTenantFor,
@@ -12,6 +16,16 @@ import { DueDateBadge, EmptyState, PageHeader, PaymentStatusBadge, StatCard } fr
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatBirr, formatDate, formatDateTime, rentUrgency } from "@/lib/rent";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -32,6 +46,22 @@ function DashboardPage() {
   const payments = usePayments();
   const maintenance = useMaintenanceRequests();
   const announcements = useAnnouncements();
+  const queryClient = useQueryClient();
+
+  const [leaveConfirm, setLeaveConfirm] = useState(false);
+
+  const leaveHouseMutation = useMutation({
+    mutationFn: async (assignmentId: string) => {
+      const { error } = await supabase.from("tenant_assignments").delete().eq("id", assignmentId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["platform-data"] });
+      toast.success("You have left the house.");
+      setLeaveConfirm(false);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
 
   if (!user || platform.isLoading) {
     return (
@@ -280,19 +310,54 @@ function DashboardPage() {
               </Card>
 
               <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle className="text-base">Owner contact</CardTitle>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0">
+                  <CardTitle className="text-base">Owner contact & Rental status</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-1 text-sm">
-                  <p className="font-medium">
-                    {directory.get(house.owner_id)?.full_name ?? "Property owner"}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {directory.get(house.owner_id)?.phone || "Phone not shared"}
-                  </p>
+                <CardContent className="space-y-3 text-sm">
+                  <div>
+                    <p className="font-medium">
+                      {directory.get(house.owner_id)?.full_name ?? "Property owner"}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {directory.get(house.owner_id)?.phone || "Phone not shared"}
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t border-border">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                      disabled={leaveHouseMutation.isPending}
+                      onClick={() => setLeaveConfirm(true)}
+                    >
+                      <LogOut className="mr-2 size-3.5" /> Leave house
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
+
+            <AlertDialog open={leaveConfirm} onOpenChange={setLeaveConfirm}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Leave House {house.house_number}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to leave this house? Your rental assignment will be cancelled and the house will become available for other tenants.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => {
+                      if (myAssignment) leaveHouseMutation.mutate(myAssignment.id);
+                    }}
+                  >
+                    Yes, leave house
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         )}
       </>

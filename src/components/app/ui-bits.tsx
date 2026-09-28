@@ -13,12 +13,12 @@ export function PageHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+    <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+      <div className="min-w-0">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-balance">{title}</h1>
+        {description && <p className="mt-1 text-xs sm:text-sm text-muted-foreground">{description}</p>}
       </div>
-      {action}
+      {action && <div className="shrink-0">{action}</div>}
     </div>
   );
 }
@@ -42,12 +42,12 @@ export function StatCard({
 
   return (
     <Card className="shadow-card">
-      <CardContent className="flex items-center gap-4 pt-6">
-        <span className={cn("grid size-11 shrink-0 place-items-center rounded-xl", tones[tone])}>
-          <Icon className="size-5" />
+      <CardContent className="flex items-center gap-3 sm:gap-4 p-4 sm:pt-6">
+        <span className={cn("grid size-10 sm:size-11 shrink-0 place-items-center rounded-xl", tones[tone])}>
+          <Icon className="size-4 sm:size-5" />
         </span>
-        <div className="min-w-0">
-          <p className="text-2xl font-bold">{value}</p>
+        <div className="min-w-0 flex-1">
+          <p className="text-xl sm:text-2xl font-bold tracking-tight">{value}</p>
           <p className="truncate text-xs text-muted-foreground">{label}</p>
         </div>
       </CardContent>

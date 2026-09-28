@@ -3,6 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type Profile = { id: string; full_name: string; phone: string; email: string };
 
+export type Building = {
+  id: string;
+  owner_id: string;
+  name: string;
+  location: string;
+  description: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export type House = {
   id: string;
   owner_id: string;
@@ -11,6 +21,9 @@ export type House = {
   rent_amount: string | number;
   recurrence: "monthly" | "quarterly" | "yearly";
   next_due_date: string;
+  building_id?: string | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
   created_at: string;
 };
 
@@ -53,25 +66,28 @@ export type Announcement = {
   created_at: string;
 };
 
-/** Houses, rental assignments and the profile directory needed to render names/phones. */
+/** Houses, buildings, rental assignments and the profile directory needed to render names/phones. */
 export function usePlatformData() {
   return useQuery({
     queryKey: ["platform-data"],
     queryFn: async () => {
-      const [houses, assignments, profiles] = await Promise.all([
+      const [houses, assignments, profiles, buildings] = await Promise.all([
         supabase.from("houses").select("*").order("house_number"),
         supabase.from("tenant_assignments").select("*").order("created_at", { ascending: false }),
         supabase.from("profiles").select("id, full_name, phone, email"),
+        supabase.from("buildings").select("*").order("name"),
       ]);
       if (houses.error) throw new Error(houses.error.message);
       if (assignments.error) throw new Error(assignments.error.message);
       if (profiles.error) throw new Error(profiles.error.message);
+      if (buildings.error) throw new Error(buildings.error.message);
 
       const directory = new Map<string, Profile>();
       for (const profile of (profiles.data ?? []) as Profile[]) directory.set(profile.id, profile);
 
       return {
         houses: (houses.data ?? []) as House[],
+        buildings: (buildings.data ?? []) as Building[],
         assignments: (assignments.data ?? []) as Assignment[],
         directory,
       };

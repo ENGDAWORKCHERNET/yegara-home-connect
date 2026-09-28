@@ -30,3 +30,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Scratch & test scripts
+*.mjs
+supabase/.temp/

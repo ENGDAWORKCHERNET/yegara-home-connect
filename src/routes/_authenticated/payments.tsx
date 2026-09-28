@@ -194,48 +194,93 @@ function PaymentTable({
   approving?: boolean;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Tenant / house</TableHead>
-            <TableHead>Uploaded</TableHead>
-            <TableHead>Expected</TableHead>
-            <TableHead>AI amount</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Trust</TableHead>
-            <TableHead className="text-right">Receipt</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map(({ payment, who }) => (
-            <TableRow key={payment.id}>
-              <TableCell className="font-medium">{who}</TableCell>
-              <TableCell>{formatDateTime(payment.created_at)}</TableCell>
-              <TableCell>{formatBirr(payment.expected_amount)}</TableCell>
-              <TableCell>
-                {payment.extracted_amount === null ? "—" : formatBirr(payment.extracted_amount)}
-              </TableCell>
-              <TableCell>
+    <>
+      {/* Mobile Card View (visible on screens < md) */}
+      <div className="space-y-3 md:hidden">
+        {rows.map(({ payment, who }) => (
+          <Card key={payment.id} className="shadow-card">
+            <CardContent className="space-y-3 p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <p className="font-semibold text-sm">{who}</p>
+                  <p className="text-xs text-muted-foreground">{formatDateTime(payment.created_at)}</p>
+                </div>
                 <PaymentStatusBadge status={payment.status} />
-              </TableCell>
-              <TableCell>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-xs rounded-lg bg-muted/60 p-2.5">
+                <div>
+                  <p className="text-muted-foreground">Expected</p>
+                  <p className="font-medium">{formatBirr(payment.expected_amount)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">AI Extracted</p>
+                  <p className="font-medium">
+                    {payment.extracted_amount === null ? "—" : formatBirr(payment.extracted_amount)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-1">
                 <TrustBadge score={payment.trust_score} />
-              </TableCell>
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
+                <div className="flex items-center gap-2">
                   <SecureImageButton kind="receipt" id={payment.id} label="View" title="Payment receipt" />
                   {showActions && payment.status !== "paid" && (
-                    <Button size="sm" disabled={approving} onClick={() => onApprove?.(payment.id)}>
+                    <Button size="sm" className="h-8 text-xs" disabled={approving} onClick={() => onApprove?.(payment.id)}>
                       Verify
                     </Button>
                   )}
                 </div>
-              </TableCell>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Desktop Table View (hidden on screens < md) */}
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-border bg-card">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Tenant / house</TableHead>
+              <TableHead>Uploaded</TableHead>
+              <TableHead>Expected</TableHead>
+              <TableHead>AI amount</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Trust</TableHead>
+              <TableHead className="text-right">Receipt</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {rows.map(({ payment, who }) => (
+              <TableRow key={payment.id}>
+                <TableCell className="font-medium">{who}</TableCell>
+                <TableCell>{formatDateTime(payment.created_at)}</TableCell>
+                <TableCell>{formatBirr(payment.expected_amount)}</TableCell>
+                <TableCell>
+                  {payment.extracted_amount === null ? "—" : formatBirr(payment.extracted_amount)}
+                </TableCell>
+                <TableCell>
+                  <PaymentStatusBadge status={payment.status} />
+                </TableCell>
+                <TableCell>
+                  <TrustBadge score={payment.trust_score} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <SecureImageButton kind="receipt" id={payment.id} label="View" title="Payment receipt" />
+                    {showActions && payment.status !== "paid" && (
+                      <Button size="sm" disabled={approving} onClick={() => onApprove?.(payment.id)}>
+                        Verify
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
 }

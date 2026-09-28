@@ -58,20 +58,20 @@ const features = [
 
 function Landing() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <header className="sticky top-0 z-30 border-b border-border/70 bg-background/85 backdrop-blur">
-        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
+        <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-3 sm:px-4">
           <span className="flex items-center gap-2 font-semibold">
-            <span className="grid size-9 place-items-center rounded-xl bg-gradient-brand text-primary-foreground">
+            <span className="grid size-9 place-items-center rounded-xl bg-gradient-brand text-primary-foreground shrink-0">
               <Building2 className="size-5" />
             </span>
-            Yegara
+            <span className="text-base sm:text-lg">Yegara</span>
           </span>
-          <div className="flex items-center gap-2">
-            <Button asChild variant="ghost" size="sm">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Button asChild variant="ghost" size="sm" className="h-8 px-2.5 sm:px-3 text-xs sm:text-sm">
               <Link to="/auth">Log in</Link>
             </Button>
-            <Button asChild size="sm">
+            <Button asChild size="sm" className="h-8 px-3 sm:px-4 text-xs sm:text-sm">
               <Link to="/auth" search={{ mode: "signup" }}>
                 Get started
               </Link>
@@ -81,33 +81,33 @@ function Landing() {
       </header>
 
       <main>
-        <section className="mx-auto max-w-6xl px-4 pt-16 pb-14 md:pt-24">
+        <section className="mx-auto max-w-6xl px-3 sm:px-4 pt-10 pb-10 sm:pt-16 sm:pb-14 md:pt-24">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
               <Sparkles className="size-3.5" /> Built for Ethiopian housing
             </span>
-            <h1 className="mt-5 text-4xl leading-tight font-bold tracking-tight text-balance md:text-6xl">
+            <h1 className="mt-4 sm:mt-5 text-3xl leading-tight font-bold tracking-tight text-balance sm:text-4xl md:text-6xl">
               Rent, receipts and repairs — <span className="text-gradient-brand">all in one place</span>
             </h1>
-            <p className="mt-5 max-w-2xl text-base text-muted-foreground md:text-lg">
+            <p className="mt-3 sm:mt-5 max-w-2xl text-sm sm:text-base text-muted-foreground md:text-lg">
               Yegara gives property owners, tenants and community guards a single trusted workspace:
               approve tenants, verify payment receipts with AI, and never miss a rent due date again.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg">
+            <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3">
+              <Button asChild size="lg" className="w-full sm:w-auto h-11 sm:h-12 text-sm sm:text-base">
                 <Link to="/auth" search={{ mode: "signup" }}>
                   Create your account
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline">
+              <Button asChild size="lg" variant="outline" className="w-full sm:w-auto h-11 sm:h-12 text-sm sm:text-base">
                 <Link to="/auth">I already have an account</Link>
               </Button>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-4 pb-20">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="mx-auto max-w-6xl px-3 sm:px-4 pb-14 sm:pb-20">
+          <div className="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
               <Card key={feature.title} className="border-border/70 shadow-card">
                 <CardContent className="pt-6">
