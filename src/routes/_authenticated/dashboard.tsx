@@ -1,8 +1,22 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { AlertTriangle, Building2, CalendarDays, Home, LogOut, Megaphone, Receipt, UserCheck, Users, Wrench } from "lucide-react";
+import {
+  AlertTriangle,
+  Building2,
+  CalendarDays,
+  Home,
+  LogOut,
+  Megaphone,
+  Phone,
+  Receipt,
+  UserCheck,
+  Users,
+  UserX,
+  Wrench,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import {
@@ -12,9 +26,18 @@ import {
   usePayments,
   usePlatformData,
 } from "@/hooks/use-data";
-import { DueDateBadge, EmptyState, PageHeader, PaymentStatusBadge, StatCard } from "@/components/app/ui-bits";
+import {
+  DueDateBadge,
+  EmptyState,
+  PageHeader,
+  PaymentStatusBadge,
+  StatCard,
+  TrustBadge,
+} from "@/components/app/ui-bits";
+import { DownloadReceiptButton, SecureImageButton } from "@/components/app/secure-image";
+import { approvePayment } from "@/lib/payments.functions";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertDialog,
@@ -49,6 +72,11 @@ function DashboardPage() {
   const queryClient = useQueryClient();
 
   const [leaveConfirm, setLeaveConfirm] = useState(false);
+  const [removingTenant, setRemovingTenant] = useState<{
+    assignmentId: string;
+    houseNumber: string;
+    tenantName: string;
+  } | null>(null);
 
   const leaveHouseMutation = useMutation({
     mutationFn: async (assignmentId: string) => {
@@ -59,6 +87,30 @@ function DashboardPage() {
       queryClient.invalidateQueries({ queryKey: ["platform-data"] });
       toast.success("You have left the house.");
       setLeaveConfirm(false);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const removeTenantMutation = useMutation({
+    mutationFn: async (assignmentId: string) => {
+      const { error } = await supabase.from("tenant_assignments").delete().eq("id", assignmentId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["platform-data"] });
+      toast.success("Tenant removed from house.");
+      setRemovingTenant(null);
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const runApprove = useServerFn(approvePayment);
+  const approvePaymentMutation = useMutation({
+    mutationFn: async (paymentId: string) => runApprove({ data: { paymentId } }),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["platform-data"] });
+      toast.success(`Payment verified. Next rent due ${result.nextDueDate}.`);
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -84,17 +136,19 @@ function DashboardPage() {
   if (user.role === "owner") {
     const myHouses = houses.filter((h) => h.owner_id === user.id);
     const myHouseIds = new Set(myHouses.map((h) => h.id));
-    const tenants = assignments.filter((a) => a.status === "approved" && myHouseIds.has(a.house_id));
+    const activeAssignments = assignments.filter(
+      (a) => a.status === "approved" && myHouseIds.has(a.house_id),
+    );
     const pendingRequests = assignments.filter(
       (a) => a.status === "pending" && myHouseIds.has(a.house_id),
     );
-    const pendingPayments = (payments.data ?? []).filter(
-      (p) => myHouseIds.has(p.house_id) && p.status !== "paid",
-    );
+    const ownerPayments = (payments.data ?? []).filter((p) => myHouseIds.has(p.house_id));
+    const pendingPayments = ownerPayments.filter((p) => p.status !== "paid");
     const openMaintenance = (maintenance.data ?? []).filter(
       (m) => myHouseIds.has(m.house_id) && m.status !== "resolved",
     );
     const alerts = myHouses.filter((h) => rentUrgency(h.next_due_date) !== "ok");
+    const buildings = platform.data?.buildings ?? [];
 
     return (
       <>
@@ -115,7 +169,7 @@ function DashboardPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Total houses" value={myHouses.length} icon={Home} />
-          <StatCard label="Active tenants" value={tenants.length} icon={Users} />
+          <StatCard label="Active tenants" value={activeAssignments.length} icon={Users} />
           <StatCard
             label="Payments to review"
             value={pendingPayments.length}
@@ -207,6 +261,221 @@ function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Active Tenants Management & Removal */}
+        <Card className="mt-6 shadow-card">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Users className="size-4 text-primary" /> Active tenants ({activeAssignments.length})
+              </CardTitle>
+              <CardDescription>
+                Occupants residing in your houses. You can manage their tenancy or remove them to vacate a house.
+              </CardDescription>
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/properties">Manage properties</Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {activeAssignments.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">
+                No active tenants currently assigned to your properties.
+              </p>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {activeAssignments.map((assignment) => {
+                  const house = myHouses.find((h) => h.id === assignment.house_id);
+                  const building = house?.building_id
+                    ? buildings.find((b) => b.id === house.building_id)
+                    : null;
+                  const tenant = directory.get(assignment.tenant_id);
+
+                  return (
+                    <div
+                      key={assignment.id}
+                      className="flex flex-col justify-between rounded-xl border border-border p-3.5 space-y-3 bg-muted/20"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="font-semibold text-sm truncate">
+                              {tenant?.full_name ?? "Tenant"}
+                            </p>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5 truncate">
+                              <Phone className="size-3 shrink-0" />
+                              {tenant?.phone || "No phone listed"}
+                            </p>
+                          </div>
+                          <span className="shrink-0 rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                            House {house?.house_number ?? "—"}
+                          </span>
+                        </div>
+
+                        {building && (
+                          <p className="text-xs text-muted-foreground">
+                            Building: <span className="font-medium text-foreground">{building.name}</span>
+                          </p>
+                        )}
+
+                        <div className="flex items-center justify-between text-xs pt-1 border-t border-border/60">
+                          <span className="text-muted-foreground">Rent</span>
+                          <span className="font-semibold text-foreground">
+                            {formatBirr(house?.rent_amount ?? 0)}
+                          </span>
+                        </div>
+
+                        {house && (
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Next due</span>
+                            <DueDateBadge dueDate={house.next_due_date} />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="pt-2 border-t border-border">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive text-xs h-8"
+                          disabled={removeTenantMutation.isPending}
+                          onClick={() =>
+                            setRemovingTenant({
+                              assignmentId: assignment.id,
+                              houseNumber: house?.house_number ?? "—",
+                              tenantName: tenant?.full_name ?? "Tenant",
+                            })
+                          }
+                        >
+                          <UserX className="mr-1.5 size-3.5" /> Remove tenant
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tenant Receipts & Payment History with Download */}
+        <Card className="mt-6 shadow-card">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Receipt className="size-4 text-primary" /> Tenant receipts & payments ({ownerPayments.length})
+              </CardTitle>
+              <CardDescription>
+                View submitted bank deposit slips, check AI trust scores, and download receipt copies directly.
+              </CardDescription>
+            </div>
+            <Button asChild size="sm" variant="outline">
+              <Link to="/payments">All payments & verify</Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {ownerPayments.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-2">
+                No receipts submitted yet by tenants.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {ownerPayments.slice(0, 6).map((payment) => {
+                  const house = myHouses.find((h) => h.id === payment.house_id);
+                  const tenant = directory.get(payment.tenant_id);
+                  const receiptFilename = `receipt-house-${house?.house_number ?? "house"}-${payment.created_at.slice(0, 10)}.jpg`;
+
+                  return (
+                    <div
+                      key={payment.id}
+                      className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-border p-3.5 bg-muted/20"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-semibold">
+                            {tenant?.full_name ?? "Tenant"} · House {house?.house_number ?? "—"}
+                          </p>
+                          <PaymentStatusBadge status={payment.status} />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          <span>Uploaded: {formatDateTime(payment.created_at)}</span>
+                          <span>•</span>
+                          <span>
+                            Expected: <strong className="text-foreground">{formatBirr(payment.expected_amount)}</strong>
+                          </span>
+                          {payment.extracted_amount !== null && (
+                            <>
+                              <span>•</span>
+                              <span>
+                                AI read: <strong className="text-foreground">{formatBirr(payment.extracted_amount)}</strong>
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                        <TrustBadge score={payment.trust_score} />
+                        <SecureImageButton
+                          kind="receipt"
+                          id={payment.id}
+                          label="View"
+                          title={`Receipt — House ${house?.house_number ?? "—"}`}
+                          filename={receiptFilename}
+                        />
+                        <DownloadReceiptButton
+                          paymentId={payment.id}
+                          filename={receiptFilename}
+                        />
+                        {payment.status !== "paid" && (
+                          <Button
+                            size="sm"
+                            className="h-8 text-xs"
+                            disabled={approvePaymentMutation.isPending}
+                            onClick={() => approvePaymentMutation.mutate(payment.id)}
+                          >
+                            Verify
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Remove Tenant Confirmation Dialog */}
+        <AlertDialog
+          open={removingTenant !== null}
+          onOpenChange={(open) => !open && setRemovingTenant(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                Remove Tenant from House {removingTenant?.houseNumber}?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to remove <strong>{removingTenant?.tenantName}</strong> from House{" "}
+                <strong>{removingTenant?.houseNumber}</strong>? This will immediately cancel their rental
+                assignment and mark the house as vacant for new tenants.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={removeTenantMutation.isPending}
+                onClick={() => {
+                  if (removingTenant) removeTenantMutation.mutate(removingTenant.assignmentId);
+                }}
+              >
+                {removeTenantMutation.isPending ? "Removing..." : "Yes, remove tenant"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </>
     );
   }

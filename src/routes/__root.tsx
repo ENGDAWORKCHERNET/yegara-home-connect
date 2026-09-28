@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { InstallPwaBanner } from "@/components/app/InstallPwaBanner";
 
 function NotFoundComponent() {
   return (
@@ -139,6 +140,31 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
+  // Register PWA service worker for offline support and installation
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js", { scope: "/" })
+          .then((reg) => {
+            reg.onupdatefound = () => {
+              const installing = reg.installing;
+              if (installing) {
+                installing.onstatechange = () => {
+                  if (installing.state === "installed" && navigator.serviceWorker.controller) {
+                    console.log("[Yegara PWA] New version ready.");
+                  }
+                };
+              }
+            };
+          })
+          .catch((err) => {
+            console.error("[Yegara PWA] Service worker registration failed:", err);
+          });
+      });
+    }
+  }, []);
+
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
@@ -176,6 +202,7 @@ function RootComponent() {
           </div>
         </footer>
       </div>
+      <InstallPwaBanner />
       <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );

@@ -9,7 +9,7 @@ import { usePayments, usePlatformData } from "@/hooks/use-data";
 import { approvePayment, verifyReceipt } from "@/lib/payments.functions";
 import { uploadPrivateImage } from "@/lib/storage";
 import { EmptyState, PageHeader, PaymentStatusBadge, TrustBadge } from "@/components/app/ui-bits";
-import { SecureImageButton } from "@/components/app/secure-image";
+import { DownloadReceiptButton, SecureImageButton } from "@/components/app/secure-image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -225,6 +225,7 @@ function PaymentTable({
                 <TrustBadge score={payment.trust_score} />
                 <div className="flex items-center gap-2">
                   <SecureImageButton kind="receipt" id={payment.id} label="View" title="Payment receipt" />
+                  <DownloadReceiptButton paymentId={payment.id} filename={`receipt-${payment.id.slice(0, 8)}.jpg`} />
                   {showActions && payment.status !== "paid" && (
                     <Button size="sm" className="h-8 text-xs" disabled={approving} onClick={() => onApprove?.(payment.id)}>
                       Verify
@@ -267,8 +268,9 @@ function PaymentTable({
                   <TrustBadge score={payment.trust_score} />
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
+                  <div className="flex justify-end items-center gap-2">
                     <SecureImageButton kind="receipt" id={payment.id} label="View" title="Payment receipt" />
+                    <DownloadReceiptButton paymentId={payment.id} filename={`receipt-${payment.id.slice(0, 8)}.jpg`} />
                     {showActions && payment.status !== "paid" && (
                       <Button size="sm" disabled={approving} onClick={() => onApprove?.(payment.id)}>
                         Verify
