@@ -130,7 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <GoogleAnalytics measurementId="G-2BN0ZXN3TW" />
+        <GoogleAnalytics measurementId="G-2BN0ZXN3TW" deferred={false} />
         {children}
         <Scripts />
       </body>
