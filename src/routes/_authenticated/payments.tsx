@@ -116,7 +116,6 @@ function PaymentsPage() {
                   id="receipt"
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={(event) => setFile(event.target.files?.[0] ?? null)}
                 />
               </div>
