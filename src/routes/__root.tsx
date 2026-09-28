@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { InstallPwaBanner } from "@/components/app/InstallPwaBanner";
+import { GoogleAnalytics } from "tanstack-router-ga4";
 
 function NotFoundComponent() {
   return (
@@ -129,6 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <GoogleAnalytics measurementId="G-2BN0ZXN3TW" />
         {children}
         <Scripts />
       </body>
