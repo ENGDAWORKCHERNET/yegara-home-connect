@@ -154,6 +154,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          read_at: string | null
+          title: string
+          type: "rent_due" | "announcement" | "receipt_uploaded" | "maintenance_request"
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          read_at?: string | null
+          title: string
+          type: "rent_due" | "announcement" | "receipt_uploaded" | "maintenance_request"
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          read_at?: string | null
+          title?: string
+          type?: "rent_due" | "announcement" | "receipt_uploaded" | "maintenance_request"
+          user_id?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           ai_notes: string
@@ -292,7 +325,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_title: string
+          p_message: string
+          p_type: string
+          p_link?: string | null
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "owner" | "tenant" | "guard"
@@ -436,4 +478,14 @@ export const Constants = {
       trust_score: ["high", "medium", "low"],
     },
   },
-} as const
+} as const;
+
+export type NotificationType =
+  | "rent_due"
+  | "announcement"
+  | "receipt_uploaded"
+  | "maintenance_request";
+export type Notification = Tables<"notifications">;
+export type NotificationInsert = TablesInsert<"notifications">;
+export type NotificationUpdate = TablesUpdate<"notifications">;
+
