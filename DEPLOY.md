@@ -15,7 +15,7 @@ Run each of these commands and paste the value when prompted:
 ```powershell
 # Your Supabase URL (from your .env)
 cmd /c "npx wrangler secret put SUPABASE_URL --config .output/server/wrangler.json"
-# When prompted, enter: https://ftvznbpsfvgzzeldycjv.supabase.co
+# When prompted, enter: https://lflkzaeevvipwalveybc.supabase.co
 
 # Your Supabase publishable key (from your .env)
 cmd /c "npx wrangler secret put SUPABASE_PUBLISHABLE_KEY --config .output/server/wrangler.json"
@@ -45,5 +45,5 @@ In the Cloudflare dashboard → Workers & Pages → yegara-home-connect → Sett
 ---
 
 > **Get your Supabase Service Role Key:**
-> Go to https://supabase.com/dashboard/project/ftvznbpsfvgzzeldycjv/settings/api
+> Go to https://supabase.com/dashboard/project/lflkzaeevvipwalveybc/settings/api
 > Copy the `service_role` key (labeled "Project API keys")

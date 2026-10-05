@@ -34,3 +34,4 @@ dist-ssr
 # Scratch & test scripts
 *.mjs
 supabase/.temp/
+codex-session-*.md
