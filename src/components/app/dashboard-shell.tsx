@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useCurrentUser, type AppRole } from "@/hooks/use-current-user";
 import { deleteUserAccount, setUserRole } from "@/lib/user.functions";
 import { Button } from "@/components/ui/button";
+import { NotificationsBell } from "@/components/app/notifications-bell";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -222,6 +223,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 </div>
               </SheetContent>
             </Sheet>
+            <NotificationsBell />
             <div className="min-w-0 flex items-center gap-2">
               {isLoading ? (
                 <Skeleton className="h-5 w-24 sm:w-32" />
