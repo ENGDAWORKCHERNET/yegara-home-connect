@@ -12,7 +12,7 @@ const AI_URL = "https://api.x.ai/v1/chat/completions";
  */
 export const verifyReceipt = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
+  .validator((input) =>
     z
       .object({
         houseId: z.string().uuid(),
@@ -144,7 +144,7 @@ export const verifyReceipt = createServerFn({ method: "POST" })
 /** Owner-side approval: marks the payment verified and rolls the house due date forward. */
 export const approvePayment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ paymentId: z.string().uuid() }).parse(input))
+  .validator((input) => z.object({ paymentId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
@@ -182,7 +182,7 @@ export const approvePayment = createServerFn({ method: "POST" })
 /** Returns a short-lived signed URL for a receipt, only for the tenant or the property owner. */
 export const getReceiptUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ paymentId: z.string().uuid() }).parse(input))
+  .validator((input) => z.object({ paymentId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     // RLS restricts this read to the tenant who paid or the owner of the house.
     const { data: payment } = await context.supabase
@@ -205,7 +205,7 @@ export const getReceiptUrl = createServerFn({ method: "POST" })
 /** Signed URL for a maintenance photo, for the reporting tenant or the property owner. */
 export const getMaintenanceImageUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input) => z.object({ requestId: z.string().uuid() }).parse(input))
+  .validator((input) => z.object({ requestId: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
     const { data: request } = await context.supabase
       .from("maintenance_requests")
