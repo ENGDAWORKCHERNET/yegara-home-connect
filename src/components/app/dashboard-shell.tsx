@@ -23,6 +23,7 @@ import { useCurrentUser, type AppRole } from "@/hooks/use-current-user";
 import { deleteUserAccount, setUserRole } from "@/lib/user.functions";
 import { Button } from "@/components/ui/button";
 import { NotificationsBell } from "@/components/app/notifications-bell";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -243,6 +244,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <ThemeToggle className="size-8" />
             <Button
               variant="outline"
               size="sm"
