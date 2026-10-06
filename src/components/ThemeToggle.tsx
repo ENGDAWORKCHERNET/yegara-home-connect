@@ -1,6 +1,7 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function ThemeToggle({ className }: { className?: string }) {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -30,7 +31,7 @@ export function ThemeToggle({ className }: { className?: string }) {
       variant="outline"
       size="icon"
       onClick={cycleTheme}
-      className={`size-9 shrink-0 text-foreground transition-colors ${className ?? ""}`}
+      className={cn("size-9 shrink-0 text-foreground transition-colors", className)}
       aria-label={getLabel()}
       aria-live="polite"
       title={getLabel()}

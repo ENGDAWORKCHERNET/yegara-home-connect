@@ -6,6 +6,7 @@ import { Building2, Loader2, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { registerUserAccount } from "@/lib/user.functions";
 import { ConsentGate } from "@/components/ConsentGate";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -258,7 +259,10 @@ function AuthPage() {
         </p>
       </aside>
 
-      <main className="flex items-center justify-center px-3 py-6 sm:px-4 sm:py-12">
+      <main className="relative flex items-center justify-center px-3 py-6 sm:px-4 sm:py-12">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle className="size-8" />
+        </div>
         <div className="w-full max-w-md">
           <Link to="/" className="mb-4 sm:mb-6 flex items-center gap-2 font-semibold lg:hidden">
             <span className="grid size-9 place-items-center rounded-xl bg-gradient-brand text-primary-foreground">
