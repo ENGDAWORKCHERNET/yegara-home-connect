@@ -18,7 +18,8 @@ import {
   UserCheck,
   Wrench,
 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { signOut as firebaseSignOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { useCurrentUser, type AppRole } from "@/hooks/use-current-user";
 import { deleteUserAccount, setUserRole } from "@/lib/user.functions";
 import { Button } from "@/components/ui/button";
@@ -104,7 +105,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   async function signOut() {
     await queryClient.cancelQueries();
     queryClient.clear();
-    await supabase.auth.signOut();
+    await firebaseSignOut(auth);
     navigate({ to: "/auth", replace: true });
   }
 
@@ -114,7 +115,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
       await deleteUserAccount();
       await queryClient.cancelQueries();
       queryClient.clear();
-      await supabase.auth.signOut();
+      await firebaseSignOut(auth);
       toast.success("Your account has been deleted.");
       navigate({ to: "/auth", replace: true });
     } catch (err: any) {
