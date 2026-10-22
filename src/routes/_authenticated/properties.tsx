@@ -6,6 +6,7 @@ import {
   Bath,
   Bed,
   Building2,
+  CalendarClock,
   Home,
   Loader2,
   Mail,
@@ -477,6 +478,92 @@ function HouseForm({
   );
 }
 
+function ChangeDueDateDialog({
+  house,
+  open,
+  onOpenChange,
+}: {
+  house: House | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
+
+  if (!house) return null;
+
+  async function handleSave(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!house) return;
+    const form = new FormData(e.currentTarget);
+    const newDate = form.get("next_due_date") as string;
+    if (!newDate) {
+      toast.error("Please choose a valid due date.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("houses")
+        .update({ next_due_date: newDate })
+        .eq("id", house.id);
+
+      if (error) throw error;
+
+      toast.success("Due date updated.");
+      queryClient.invalidateQueries({ queryKey: ["platform-data"] });
+      queryClient.invalidateQueries({ queryKey: ["houses"] });
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error(err?.message || "Failed to update due date.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Change Rent Due Date</DialogTitle>
+          <DialogDescription>
+            Update the next due date for House {house.house_number}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form key={house.id} onSubmit={handleSave} className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <Label htmlFor="change_next_due_date">Next due date</Label>
+            <Input
+              id="change_next_due_date"
+              name="next_due_date"
+              type="date"
+              defaultValue={house.next_due_date}
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saving}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving}>
+              {saving && <Loader2 className="mr-2 size-4 animate-spin" />}
+              Save Changes
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 function PropertiesPage() {
   const { data: user } = useCurrentUser();
   const platform = usePlatformData();
@@ -484,6 +571,7 @@ function PropertiesPage() {
 
   const [addHouseOpen, setAddHouseOpen] = useState(false);
   const [editingHouse, setEditingHouse] = useState<House | null>(null);
+  const [dueDateHouseTarget, setDueDateHouseTarget] = useState<House | null>(null);
   const [editingBuilding, setEditingBuilding] = useState<Building | null>(null);
   const [addBuildingOpen, setAddBuildingOpen] = useState(false);
   const [multiBuildingPromptOpen, setMultiBuildingPromptOpen] = useState(false);
@@ -743,7 +831,21 @@ function PropertiesPage() {
                     <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{house.description}</p>
                   )}
 
-                  <DueDateBadge dueDate={house.next_due_date} />
+                  <div className="flex items-center justify-between gap-2">
+                    <DueDateBadge dueDate={house.next_due_date} />
+                    {user.id === house.owner_id && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => setDueDateHouseTarget(house)}
+                        title="Change Rent Date"
+                      >
+                        <CalendarClock className="mr-1.5 size-3.5" />
+                        Edit Due Date
+                      </Button>
+                    )}
+                  </div>
 
                   <div className="rounded-lg bg-muted p-2.5 sm:p-3 text-xs sm:text-sm">
                     {tenant && tenantAssignment ? (
@@ -787,6 +889,13 @@ function PropertiesPage() {
           })}
         </div>
       )}
+
+      {/* Change Due Date Dialog */}
+      <ChangeDueDateDialog
+        house={dueDateHouseTarget}
+        open={dueDateHouseTarget !== null}
+        onOpenChange={(open) => !open && setDueDateHouseTarget(null)}
+      />
 
       {/* Edit House Dialog */}
       <Dialog open={editingHouse !== null} onOpenChange={(open) => !open && setEditingHouse(null)}>
